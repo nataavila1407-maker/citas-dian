@@ -1,13 +1,13 @@
-// Monitor de citas DIAN: abre la página, sigue los pasos y avisa por WhatsApp
-// si deja de aparecer el mensaje de "no hay citas".
+// Monitor de citas DIAN: abre la página, sigue los pasos hasta "Devoluciones"
+// y avisa cuando aparece la lista de trámites (o sea, cuando hay citas).
+// No llena datos ni agenda: eso lo hace la persona al recibir el aviso.
 const { chromium } = require("playwright");
 const fs = require("fs");
 
 // ================== CONFIGURACIÓN (lo único que se edita) ==================
 const URL = process.env.URL_DIAN || "https://agendamiento.dian.gov.co/";
 
-// Textos de los botones u opciones en los que haces clic, EN ORDEN y tal como
-// se ven en pantalla. Un texto por línea, entre comillas y con coma al final.
+// Textos de los botones en los que se hace clic, EN ORDEN.
 const PASOS = [
   "Agendar cita",
   "Persona Natural",
@@ -25,76 +25,130 @@ function anotar(mensaje) {
   registro.push(mensaje);
 }
 
-async function whatsapp(texto) {
+// Envía el aviso por los canales que estén configurados (WhatsApp y/o ntfy).
+async function avisar(texto) {
   const tel = process.env.WHATSAPP_PHONE;
   const key = process.env.WHATSAPP_APIKEY;
-  if (!tel || !key) {
-    anotar("Faltan los secretos WHATSAPP_PHONE o WHATSAPP_APIKEY; no se envió el mensaje.");
+  const tema = process.env.NTFY_TOPIC;
+  if (!(tel && key) && !tema) {
+    anotar("No hay ningún canal de aviso configurado todavía; no se envió el mensaje.");
     return;
   }
-  const url =
-    "https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(tel) +
-    "&text=" + encodeURIComponent(texto) +
-    "&apikey=" + encodeURIComponent(key);
-  try {
-    const r = await fetch(url);
-    anotar("WhatsApp enviado. Respuesta del servicio: " + r.status);
-  } catch (e) {
-    anotar("No se pudo enviar el WhatsApp: " + e.message);
+  if (tel && key) {
+    const url =
+      "https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(tel) +
+      "&text=" + encodeURIComponent(texto) +
+      "&apikey=" + encodeURIComponent(key);
+    try {
+      const r = await fetch(url);
+      anotar("WhatsApp enviado. Respuesta del servicio: " + r.status);
+    } catch (e) {
+      anotar("No se pudo enviar el WhatsApp: " + e.message);
+    }
+  }
+  if (tema) {
+    try {
+      const r = await fetch("https://ntfy.sh/" + encodeURIComponent(tema), {
+        method: "POST",
+        body: texto,
+        headers: { Title: "Citas DIAN", Priority: "urgent", Tags: "rotating_light", Click: URL },
+      });
+      anotar("Notificación ntfy enviada. Respuesta del servicio: " + r.status);
+    } catch (e) {
+      anotar("No se pudo enviar la notificación ntfy: " + e.message);
+    }
   }
 }
 
-// Busca un texto visible (en la página o en marcos internos) y hace clic.
-// Si el texto es una opción de una lista desplegable, la selecciona.
+// Se ejecuta dentro de la página: busca el botón visible cuyo texto coincide,
+// ignorando tildes, mayúsculas, espacios y saltos de línea.
+function buscarBoton(texto) {
+  const norm = (s) =>
+    (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase();
+  const visible = (e) => {
+    const r = e.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return false;
+    const st = getComputedStyle(e);
+    return st.visibility !== "hidden" && st.display !== "none";
+  };
+  const objetivo = norm(texto);
+  let exacto = null;
+  let parcial = null;
+  let largo = Infinity;
+  for (const e of document.querySelectorAll("body *")) {
+    const etiqueta = e.tagName;
+    if (etiqueta === "SCRIPT" || etiqueta === "STYLE" || etiqueta === "OPTION" || etiqueta === "SELECT") continue;
+    if (!norm(e.textContent).includes(objetivo)) continue;
+    if (!visible(e)) continue;
+    const txt = norm(e.innerText);
+    if (!txt.includes(objetivo)) continue;
+    if (txt === objetivo) {
+      if (!exacto || exacto.contains(e)) exacto = e;
+    } else if (txt.length < largo && txt.length < 300) {
+      parcial = e;
+      largo = txt.length;
+    }
+  }
+  const el = exacto || parcial;
+  return el ? el.closest(".boton, button, a, [role=button]") || el : null;
+}
+
 async function clicEnTexto(page, texto) {
-  const limite = Date.now() + 30000;
-  let vistos = 0;
+  const limite = Date.now() + 40000;
   while (Date.now() < limite) {
     for (const frame of page.frames()) {
-      const grupos = [
-        frame.getByText(texto, { exact: true }),
-        frame.getByText(texto, { exact: false }),
-        frame.locator(
-          '[value="' + texto + '" i], [aria-label*="' + texto + '" i], ' +
-          '[title*="' + texto + '" i], [alt*="' + texto + '" i]'
-        ),
-      ];
-      for (const candidatos of grupos) {
-        const n = await candidatos.count().catch(() => 0);
-        vistos = Math.max(vistos, n);
-        for (let i = 0; i < n; i++) {
-          const el = candidatos.nth(i);
-          if (await el.isVisible().catch(() => false)) {
-            await el.click({ timeout: 10000 });
-            return;
-          }
-        }
-      }
-      // Lista desplegable clásica: se selecciona la opción en vez de hacer clic.
-      const opcion = frame.locator("select:visible option", { hasText: texto }).first();
-      if ((await opcion.count().catch(() => 0)) > 0) {
-        const nombre = ((await opcion.textContent()) || "").trim();
-        await opcion.locator("xpath=..").selectOption({ label: nombre });
+      const dir = frame.url();
+      if (dir.includes("recaptcha") || dir === "about:blank") continue;
+      const manija = await frame.evaluateHandle(buscarBoton, texto).catch(() => null);
+      const el = manija ? manija.asElement() : null;
+      if (el) {
+        await el.scrollIntoViewIfNeeded().catch(() => {});
+        await el.click({ timeout: 15000 });
         return;
       }
     }
     await page.waitForTimeout(500);
   }
-  throw new Error(
-    'No encontré en pantalla el texto "' + texto + '" (coincidencias ocultas: ' + vistos + ")"
-  );
+  throw new Error('No encontré en pantalla el botón "' + texto + '"');
 }
 
-async function apareceTexto(page, texto, ms) {
-  const limite = Date.now() + ms;
-  while (Date.now() < limite) {
-    for (const frame of page.frames()) {
-      const visible = await frame.getByText(texto).first().isVisible().catch(() => false);
-      if (visible) return true;
+// Se ejecuta dentro de la página: mira si salió el mensaje de "sin citas"
+// o si apareció la lista desplegable de trámites.
+function leerResultado(textoSinCitas) {
+  const norm = (s) =>
+    (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase();
+  const visible = (e) => {
+    const r = e.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return false;
+    const st = getComputedStyle(e);
+    return st.visibility !== "hidden" && st.display !== "none";
+  };
+  const objetivo = norm(textoSinCitas);
+  let mensaje = "";
+  for (const e of document.querySelectorAll("body span, body p, body div, body label, body td")) {
+    if (e.children.length > 0) continue;
+    if (!norm(e.textContent).includes(objetivo)) continue;
+    if (visible(e)) {
+      mensaje = (e.innerText || "").trim();
+      break;
     }
-    await page.waitForTimeout(500);
   }
-  return false;
+  let listaVisible = false;
+  let opciones = [];
+  const zona = document.querySelector('[nombre="Servicios"]');
+  const listas = zona ? Array.from(zona.querySelectorAll("select")) : [];
+  for (const s of document.querySelectorAll("select")) {
+    if (visible(s) && !listas.includes(s)) listas.push(s);
+  }
+  for (const s of listas) {
+    const zonaVisible = visible(s) || (zona && zona.contains(s) && visible(zona));
+    if (!zonaVisible) continue;
+    listaVisible = true;
+    opciones = opciones.concat(
+      Array.from(s.options).map((o) => (o.text || "").trim()).filter((t) => t && !/^seleccion/i.test(t))
+    );
+  }
+  return { mensaje, listaVisible, opciones };
 }
 
 // Guarda cómo está construida la página, para poder ajustar el bot.
@@ -102,7 +156,9 @@ async function guardarDiagnostico(page, motivo) {
   const lineas = ["Motivo: " + motivo, "Dirección: " + page.url(), ""];
   const frames = page.frames();
   for (let i = 0; i < frames.length; i++) {
-    lineas.push("--- Marco " + i + ": " + frames[i].url());
+    const dir = frames[i].url();
+    if (dir.includes("recaptcha") || dir === "about:blank") continue;
+    lineas.push("--- Marco " + i + ": " + dir);
     try {
       const info = await frames[i].evaluate(() => {
         const volcar = (raiz) => {
@@ -122,21 +178,12 @@ async function guardarDiagnostico(page, motivo) {
           }
           return salida;
         };
-        const todos = Array.from(document.querySelectorAll("*"));
         return {
-          resumen: {
-            lienzos: document.querySelectorAll("canvas").length,
-            marcos: document.querySelectorAll("iframe, frame, object, embed").length,
-            conSombra: todos.filter((e) => e.shadowRoot).length,
-            etiquetasPropias: Array.from(
-              new Set(todos.map((e) => e.tagName.toLowerCase()).filter((t) => t.includes("-")))
-            ).slice(0, 60),
-          },
           texto: (document.body ? document.body.innerText : "").slice(0, 6000),
           html: volcar(document.documentElement).slice(0, 1500000),
         };
       });
-      lineas.push(JSON.stringify(info.resumen), "Texto visible:", info.texto, "");
+      lineas.push("Texto visible:", info.texto, "");
       fs.writeFileSync("marco-" + i + ".html", info.html);
     } catch (e) {
       lineas.push("No se pudo leer este marco: " + e.message, "");
@@ -160,7 +207,7 @@ async function guardarDiagnostico(page, motivo) {
   try {
     await page.goto(URL, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
     await page.screenshot({ path: "paso-0-inicio.png", fullPage: true });
 
     for (let i = 0; i < PASOS.length; i++) {
@@ -171,25 +218,32 @@ async function guardarDiagnostico(page, motivo) {
       anotar("Paso " + (i + 1) + " listo: " + PASOS[i]);
     }
 
-    const sinCitas = await apareceTexto(page, SIN_CITAS, 20000);
+    // Espera a que la página responda: mensaje de sin citas o lista de trámites.
+    let resultado = { mensaje: "", listaVisible: false, opciones: [] };
+    const limite = Date.now() + 25000;
+    while (Date.now() < limite) {
+      resultado = await page.evaluate(leerResultado, SIN_CITAS);
+      if (resultado.mensaje || resultado.listaVisible) break;
+      await page.waitForTimeout(500);
+    }
     await page.screenshot({ path: "resultado.png", fullPage: true });
+    anotar("Resultado: " + JSON.stringify(resultado));
 
-    if (sinCitas) {
+    if (resultado.mensaje) {
       anotar("Sin citas por ahora.");
-      if (manual) await whatsapp("Prueba del bot DIAN: funciona. Por ahora NO hay citas.");
+      if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas.");
+    } else if (resultado.listaVisible) {
+      const detalle = resultado.opciones.length ? " Trámites: " + resultado.opciones.slice(0, 4).join("; ") + "." : "";
+      await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + detalle + " Entra ya: " + URL);
     } else {
-      anotar("No apareció el mensaje de sin citas: posible disponibilidad.");
-      await whatsapp(
-        (manual ? "Prueba del bot DIAN: no vi el mensaje de sin citas. " : "") +
-        "DIAN: puede haber CITAS DISPONIBLES (Videoatención - Devoluciones). Entra ya: " + URL
-      );
+      await avisar("DIAN: no salió el mensaje de sin citas. Revisa por si hay disponibilidad: " + URL);
     }
     if (manual) await guardarDiagnostico(page, "Prueba manual terminada");
   } catch (e) {
     anotar("Error: " + e.message);
     await page.screenshot({ path: "error.png", fullPage: true }).catch(() => {});
     await guardarDiagnostico(page, e.message).catch(() => {});
-    if (manual) await whatsapp("Prueba del bot DIAN: falló. " + e.message);
+    if (manual) await avisar("Prueba del bot DIAN: falló. " + e.message);
     codigo = 1;
   } finally {
     await browser.close();
