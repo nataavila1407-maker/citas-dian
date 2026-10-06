@@ -11,7 +11,7 @@ const PASOS = [
 "Agendar cita",
 "Persona Natural",
 "Videoatención",
-"Devoluciones",
+"Devoluciones.",
 ];
 
 // Texto que muestra la página cuando NO hay citas.
