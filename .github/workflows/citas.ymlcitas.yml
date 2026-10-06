@@ -2,12 +2,12 @@ name: Citas DIAN
 
 on:
   schedule:
-    - cron: "*/5 * * * *"    # cada 5 minutos
-  workflow_dispatch:          # permite ejecutarlo a mano (modo prueba)
+    - cron: "*/10 * * * *"   # arranca un turno; dentro del turno se consulta cada 5 minutos
+  workflow_dispatch:          # permite ejecutarlo a mano (modo prueba: una sola consulta)
 
 concurrency:
   group: citas-dian
-  cancel-in-progress: false
+  cancel-in-progress: false   # un turno a la vez; el siguiente espera a que termine el actual
 
 permissions:
   contents: write             # para poder guardar el registro de consultas
@@ -15,7 +15,7 @@ permissions:
 jobs:
   consultar:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
 
@@ -24,49 +24,66 @@ jobs:
           npm install playwright
           npx playwright install --with-deps chromium
 
-      - name: Consultar citas
-        run: node monitor.js
+      - name: Consultar y registrar
         env:
           WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
           WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
-
-      - name: Guardar registro
-        if: ${{ always() }}
-        env:
           GH_TOKEN: ${{ github.token }}
+          CADA_SEG: "300"      # cada cuánto consulta (300 segundos = 5 minutos)
+          TURNO_SEG: "3000"    # cuánto dura cada turno (3000 segundos = 50 minutos)
         run: |
-          set -e
           REMOTO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          AHORA_CO=$(TZ=America/Bogota date '+%Y-%m-%d %H:%M:%S')
-          AHORA_UTC=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
-          DIA=$(TZ=America/Bogota date '+%Y-%m-%d')
-          if [ -s linea.csv ]; then
-            LINEA=$(head -n 1 linea.csv)
-          else
-            LINEA="${AHORA_CO};error;El bot no alcanzó a consultar la página;${AHORA_UTC};"
-          fi
-          rm -rf /tmp/datos
-          if git ls-remote --exit-code --heads "$REMOTO" datos >/dev/null 2>&1; then
-            git clone --quiet --depth 1 --branch datos "$REMOTO" /tmp/datos
-          else
-            git init --quiet --initial-branch=datos /tmp/datos
-            git -C /tmp/datos remote add origin "$REMOTO"
-          fi
-          ARCHIVO="/tmp/datos/registro-${DIA}.csv"
-          [ -f "$ARCHIVO" ] || echo "fecha_hora_colombia;estado;detalle;fecha_utc;captura" > "$ARCHIVO"
-          echo "$LINEA" >> "$ARCHIVO"
-          CAPTURA=$(echo "$LINEA" | cut -d';' -f5)
-          if [ -n "$CAPTURA" ] && [ -f resultado.png ]; then
-            mkdir -p /tmp/datos/capturas
-            cp resultado.png "/tmp/datos/capturas/${CAPTURA}"
-          fi
-          cd /tmp/datos
-          git add -A
-          git -c user.name="bot-citas-dian" -c user.email="bot-citas-dian@users.noreply.github.com" \
-            commit --quiet -m "Consulta ${AHORA_CO}: $(echo "$LINEA" | cut -d';' -f2)"
-          git push --quiet origin datos
+
+          guardar_registro() {
+            local AHORA_CO AHORA_UTC DIA LINEA ARCHIVO CAPTURA
+            AHORA_CO=$(TZ=America/Bogota date '+%Y-%m-%d %H:%M:%S')
+            AHORA_UTC=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+            DIA=$(TZ=America/Bogota date '+%Y-%m-%d')
+            if [ -s linea.csv ]; then
+              LINEA=$(head -n 1 linea.csv)
+            else
+              LINEA="${AHORA_CO};error;El bot no alcanzó a consultar la página;${AHORA_UTC};"
+            fi
+            rm -rf /tmp/datos
+            if git ls-remote --exit-code --heads "$REMOTO" datos >/dev/null 2>&1; then
+              git clone --quiet --depth 1 --branch datos "$REMOTO" /tmp/datos || return 1
+            else
+              git init --quiet --initial-branch=datos /tmp/datos || return 1
+              git -C /tmp/datos remote add origin "$REMOTO" || return 1
+            fi
+            ARCHIVO="/tmp/datos/registro-${DIA}.csv"
+            [ -f "$ARCHIVO" ] || echo "fecha_hora_colombia;estado;detalle;fecha_utc;captura" > "$ARCHIVO"
+            echo "$LINEA" >> "$ARCHIVO"
+            CAPTURA=$(echo "$LINEA" | cut -d';' -f5)
+            if [ -n "$CAPTURA" ] && [ -f resultado.png ]; then
+              mkdir -p /tmp/datos/capturas
+              cp resultado.png "/tmp/datos/capturas/${CAPTURA}"
+            fi
+            git -C /tmp/datos add -A || return 1
+            git -C /tmp/datos -c user.name="bot-citas-dian" -c user.email="bot-citas-dian@users.noreply.github.com" \
+              commit --quiet -m "Consulta ${AHORA_CO}: $(echo "$LINEA" | cut -d';' -f2)" || return 1
+            git -C /tmp/datos push --quiet origin datos || return 1
+          }
+
+          FIN=$(( $(date +%s) + TURNO_SEG ))
+          TOTAL=0
+          FALLAS=0
+          while true; do
+            INICIO=$(date +%s)
+            rm -f linea.csv resultado.png
+            if ! node monitor.js; then FALLAS=$((FALLAS + 1)); fi
+            TOTAL=$((TOTAL + 1))
+            guardar_registro || { sleep 5; guardar_registro; } || echo "No se pudo guardar el registro de esta consulta."
+            if [ "$MANUAL" = "true" ]; then break; fi
+            SIGUIENTE=$(( INICIO + CADA_SEG ))
+            if [ "$SIGUIENTE" -ge "$FIN" ]; then break; fi
+            AHORA=$(date +%s)
+            if [ "$SIGUIENTE" -gt "$AHORA" ]; then sleep $(( SIGUIENTE - AHORA )); fi
+          done
+          echo "Consultas en este turno: ${TOTAL}. Fallidas: ${FALLAS}."
+          if [ "$FALLAS" -eq "$TOTAL" ]; then exit 1; fi
 
       - name: Guardar capturas
         if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
