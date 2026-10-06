@@ -25,6 +25,16 @@ function anotar(mensaje) {
   registro.push(mensaje);
 }
 
+// Deja anotado el resultado de esta consulta para el registro histórico.
+function registrar(estado, detalle, conCaptura) {
+  const ahora = new Date();
+  const colombia = ahora.toLocaleString("sv-SE", { timeZone: "America/Bogota" });
+  const utc = ahora.toISOString().replace(/\.\d+Z$/, "Z");
+  const limpio = String(detalle || "").replace(/[;\r\n"]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+  const captura = conCaptura ? colombia.replace(" ", "_").replace(/:/g, "") + ".png" : "";
+  fs.writeFileSync("linea.csv", [colombia, estado, limpio, utc, captura].join(";") + "\n");
+}
+
 // Envía el aviso por los canales que estén configurados (WhatsApp y/o ntfy).
 async function avisar(texto) {
   const tel = process.env.WHATSAPP_PHONE;
@@ -231,16 +241,20 @@ async function guardarDiagnostico(page, motivo) {
 
     if (resultado.mensaje) {
       anotar("Sin citas por ahora.");
+      registrar("sin_citas", resultado.mensaje, false);
       if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas.");
     } else if (resultado.listaVisible) {
-      const detalle = resultado.opciones.length ? " Trámites: " + resultado.opciones.slice(0, 4).join("; ") + "." : "";
-      await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + detalle + " Entra ya: " + URL);
+      const tramites = resultado.opciones.slice(0, 4).join(", ");
+      registrar("hay_citas", tramites ? "Trámites ofrecidos: " + tramites : "Apareció la lista de trámites", true);
+      await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + (tramites ? " Trámites: " + tramites + "." : "") + " Entra ya: " + URL);
     } else {
+      registrar("no_reconocido", "No salió el mensaje de sin citas ni la lista de trámites", true);
       await avisar("DIAN: no salió el mensaje de sin citas. Revisa por si hay disponibilidad: " + URL);
     }
     if (manual) await guardarDiagnostico(page, "Prueba manual terminada");
   } catch (e) {
     anotar("Error: " + e.message);
+    registrar("error", e.message, false);
     await page.screenshot({ path: "error.png", fullPage: true }).catch(() => {});
     await guardarDiagnostico(page, e.message).catch(() => {});
     if (manual) await avisar("Prueba del bot DIAN: falló. " + e.message);
