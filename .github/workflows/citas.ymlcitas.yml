@@ -2,12 +2,15 @@ name: Citas DIAN
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # cada 5 minutos
+    - cron: "*/5 * * * *"    # cada 5 minutos
   workflow_dispatch:          # permite ejecutarlo a mano (modo prueba)
 
 concurrency:
   group: citas-dian
   cancel-in-progress: false
+
+permissions:
+  contents: write             # para poder guardar el registro de consultas
 
 jobs:
   consultar:
@@ -29,6 +32,42 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
 
+      - name: Guardar registro
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          REMOTO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          AHORA_CO=$(TZ=America/Bogota date '+%Y-%m-%d %H:%M:%S')
+          AHORA_UTC=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          DIA=$(TZ=America/Bogota date '+%Y-%m-%d')
+          if [ -s linea.csv ]; then
+            LINEA=$(head -n 1 linea.csv)
+          else
+            LINEA="${AHORA_CO};error;El bot no alcanzó a consultar la página;${AHORA_UTC};"
+          fi
+          rm -rf /tmp/datos
+          if git ls-remote --exit-code --heads "$REMOTO" datos >/dev/null 2>&1; then
+            git clone --quiet --depth 1 --branch datos "$REMOTO" /tmp/datos
+          else
+            git init --quiet --initial-branch=datos /tmp/datos
+            git -C /tmp/datos remote add origin "$REMOTO"
+          fi
+          ARCHIVO="/tmp/datos/registro-${DIA}.csv"
+          [ -f "$ARCHIVO" ] || echo "fecha_hora_colombia;estado;detalle;fecha_utc;captura" > "$ARCHIVO"
+          echo "$LINEA" >> "$ARCHIVO"
+          CAPTURA=$(echo "$LINEA" | cut -d';' -f5)
+          if [ -n "$CAPTURA" ] && [ -f resultado.png ]; then
+            mkdir -p /tmp/datos/capturas
+            cp resultado.png "/tmp/datos/capturas/${CAPTURA}"
+          fi
+          cd /tmp/datos
+          git add -A
+          git -c user.name="bot-citas-dian" -c user.email="bot-citas-dian@users.noreply.github.com" \
+            commit --quiet -m "Consulta ${AHORA_CO}: $(echo "$LINEA" | cut -d';' -f2)"
+          git push --quiet origin datos
+
       - name: Guardar capturas
         if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v7
@@ -36,7 +75,7 @@ jobs:
           name: capturas
           path: |
             *.png
-            *.html
+            marco-*.html
             *.txt
           retention-days: 3
           if-no-files-found: ignore
