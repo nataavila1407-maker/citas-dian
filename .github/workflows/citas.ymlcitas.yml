@@ -2,7 +2,7 @@ name: Citas DIAN
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # cada 10 minutos
+    - cron: "*/5 * * * *"   # cada 5 minutos
   workflow_dispatch:          # permite ejecutarlo a mano (modo prueba)
 
 concurrency:
@@ -26,6 +26,7 @@ jobs:
         env:
           WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
           WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Guardar capturas
