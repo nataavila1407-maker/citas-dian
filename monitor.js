@@ -8,10 +8,10 @@ const URL = process.env.URL_DIAN || "https://agendamiento.dian.gov.co/";
 // Textos de los botones u opciones en los que haces clic, EN ORDEN y tal como
 // se ven en pantalla. Un texto por línea, entre comillas y con coma al final.
 const PASOS = [
-       "Agendar cita",
-  "Persona Natural",
-  "Videoatención",
-  "Devoluciones",
+"Agendar cita",
+"Persona Natural",
+"Videoatención",
+"Devoluciones",
 ];
 
 // Texto que muestra la página cuando NO hay citas.
