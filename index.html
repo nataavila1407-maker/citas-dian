@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de consultas de citas DIAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #EEF1F5;
+    --hoja: #FFFFFF;
+    --tinta: #16233F;
+    --tenue: #5B6880;
+    --regla: #D3D9E3;
+    --sin: #8D99AE;
+    --citas: #0B8A5A;
+    --falla: #B76A08;
+    --titulos: "Archivo", "Arial Narrow", Arial, sans-serif;
+    --texto: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--papel); }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 4rem;
+    color: var(--tinta);
+    font-family: var(--texto);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  main { max-width: 62rem; margin: 0 auto; }
+
+  h1 {
+    margin: 0;
+    font-family: var(--titulos);
+    font-stretch: 72%;
+    font-weight: 800;
+    font-size: clamp(2.1rem, 6vw, 3.6rem);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .entrada { margin: 0.9rem 0 0; max-width: 44rem; color: var(--tenue); }
+
+  .balance {
+    margin: 2rem 0 0;
+    padding: 1.1rem 0;
+    border-top: 3px solid var(--tinta);
+    border-bottom: 1px solid var(--regla);
+    font-family: var(--titulos);
+    font-stretch: 88%;
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+    line-height: 1.35;
+    max-width: 52rem;
+  }
+  .balance strong { font-weight: 800; }
+  .balance .si { color: var(--citas); }
+  .balance small { display: block; margin-top: 0.5rem; font-family: var(--texto); font-size: 0.9rem; color: var(--tenue); }
+
+  .mandos { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; margin: 1.5rem 0 0; }
+  .mandos label { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+  input[type="month"], button {
+    font: inherit;
+    color: var(--tinta);
+    background: var(--hoja);
+    border: 1px solid var(--tinta);
+    border-radius: 3px;
+    padding: 0.4rem 0.7rem;
+  }
+  button { cursor: pointer; font-weight: 600; }
+  button:hover { background: var(--tinta); color: var(--hoja); }
+  :focus-visible { outline: 3px solid #3E7BFA; outline-offset: 2px; }
+
+  .leyenda { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: 0.9rem; color: var(--tenue); }
+  .leyenda li { display: flex; align-items: center; gap: 0.4rem; }
+  .leyenda i { display: inline-block; width: 4px; border-radius: 1px; }
+  .leyenda .sin { height: 9px; background: var(--sin); }
+  .leyenda .si { height: 18px; background: var(--citas); }
+  .leyenda .no { height: 14px; background: var(--falla); }
+
+  .horas, .dia > summary { display: grid; grid-template-columns: 13rem 1fr 16rem; column-gap: 1.25rem; align-items: center; }
+  .horas { margin-top: 1.75rem; padding: 0 calc(1rem + 1px); font-size: 0.8rem; color: var(--tenue); }
+  .horas .marcas { grid-column: 2; position: relative; height: 1.2rem; }
+  .horas .marcas span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+  .horas .marcas span:first-child { transform: none; }
+  .horas .marcas span:last-child { transform: translateX(-100%); }
+
+  .dias { margin-top: 0.25rem; background: var(--hoja); border: 1px solid var(--regla); }
+  .dia { border-top: 1px solid var(--regla); }
+  .dia:first-child { border-top: 0; }
+  .dia > summary { list-style: none; cursor: pointer; padding: 0.7rem 1rem; }
+  .dia > summary::-webkit-details-marker { display: none; }
+  .dia > summary:hover { background: #F6F8FB; }
+  .fecha { font-family: var(--titulos); font-stretch: 88%; font-weight: 700; font-size: 1.05rem; }
+  .fecha::first-letter { text-transform: uppercase; }
+  .cuenta { font-size: 0.9rem; color: var(--tenue); text-align: right; }
+  .cuenta b { color: var(--citas); }
+  .cuenta .abre { display: block; color: var(--tinta); text-decoration: underline; text-underline-offset: 2px; }
+
+  .tira {
+    position: relative;
+    height: 30px;
+    border-left: 1px solid var(--regla);
+    border-right: 1px solid var(--regla);
+    background:
+      linear-gradient(to right, transparent calc(25% - 0.5px), var(--regla) calc(25% - 0.5px), var(--regla) calc(25% + 0.5px), transparent calc(25% + 0.5px)),
+      linear-gradient(to right, transparent calc(50% - 0.5px), var(--regla) calc(50% - 0.5px), var(--regla) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+      linear-gradient(to right, transparent calc(75% - 0.5px), var(--regla) calc(75% - 0.5px), var(--regla) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+  }
+  .tira i { position: absolute; bottom: 0; width: 2px; margin-left: -1px; border-radius: 1px 1px 0 0; }
+  .tira .sin_citas { height: 34%; background: var(--sin); }
+  .tira .error, .tira .no_reconocido { height: 66%; background: var(--falla); z-index: 1; }
+  .tira .hay_citas { height: 100%; width: 4px; margin-left: -2px; background: var(--citas); z-index: 2; }
+
+  .detalle { padding: 0 1rem 1rem; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.35rem 0.75rem 0.35rem 0; border-top: 1px solid var(--regla); vertical-align: top; }
+  th { font-weight: 600; color: var(--tenue); border-top: 0; }
+  td:first-child { white-space: nowrap; }
+  td.hay_citas { color: var(--citas); font-weight: 600; }
+  td.error, td.no_reconocido { color: var(--falla); font-weight: 600; }
+  td.nota { color: var(--tenue); }
+
+  .aviso { margin: 0; padding: 1.5rem 1rem; color: var(--tenue); }
+  .pie { margin-top: 1.5rem; max-width: 44rem; font-size: 0.9rem; color: var(--tenue); }
+  a { color: inherit; }
+
+  @media (max-width: 760px) {
+    .horas { display: none; }
+    .dias { margin-top: 1.25rem; }
+    .dia > summary { grid-template-columns: 1fr; row-gap: 0.4rem; }
+    .dia > summary .tira { grid-row: 3; }
+    .cuenta { text-align: left; }
+    .leyenda { margin-left: 0; }
+  }
+  @media print {
+    html, body { background: #fff; }
+    body { padding: 0; font-size: 10pt; }
+    .mandos button, .mandos label, .cuenta .abre { display: none; }
+    .dia { break-inside: avoid; }
+    .dia[open] { break-inside: auto; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Registro de consultas de citas DIAN</h1>
+  <p class="entrada">Cada pocos minutos un programa entra a agendamiento.dian.gov.co, elige Persona Natural, Videoatención y Devoluciones, y anota aquí lo que la página responde.</p>
+
+  <p class="balance" id="balance" aria-live="polite">Leyendo el registro…</p>
+
+  <div class="mandos">
+    <label>Mes <input type="month" id="mes"></label>
+    <button type="button" id="imprimir">Imprimir o guardar como PDF</button>
+    <ul class="leyenda" aria-label="Significado de las marcas">
+      <li><i class="sin"></i>Sin citas</li>
+      <li><i class="si"></i>Citas disponibles</li>
+      <li><i class="no"></i>No se pudo consultar</li>
+    </ul>
+  </div>
+
+  <div class="horas" aria-hidden="true">
+    <div class="marcas"><span style="left:0">12 a. m.</span><span style="left:25%">6 a. m.</span><span style="left:50%">12 m.</span><span style="left:75%">6 p. m.</span><span style="left:100%">12 a. m.</span></div>
+  </div>
+  <div class="dias" id="dias"></div>
+
+  <p class="pie" id="pie"></p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var parametros = new URLSearchParams(location.search);
+  var enPages = /\.github\.io$/.test(location.hostname);
+  var dueno = enPages ? location.hostname.split(".")[0] : "nataavila1407-maker";
+  var repo = enPages ? (location.pathname.split("/")[1] || "citas-dian") : "citas-dian";
+  var BASE = parametros.get("datos") || "https://raw.githubusercontent.com/" + dueno + "/" + repo + "/datos/";
+
+  var NOMBRES = {
+    sin_citas: "Sin citas",
+    hay_citas: "Citas disponibles",
+    no_reconocido: "Resultado sin identificar",
+    error: "No se pudo consultar"
+  };
+
+  var elMes = document.getElementById("mes");
+  var elBalance = document.getElementById("balance");
+  var elDias = document.getElementById("dias");
+  var elPie = document.getElementById("pie");
+
+  function hoyColombia() {
+    return new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bogota" });
+  }
+  function numero(n) { return n.toLocaleString("es-CO"); }
+  function plural(n, uno, varios) { return numero(n) + " " + (n === 1 ? uno : varios); }
+  function hora12(hhmm) {
+    var p = hhmm.split(":");
+    var h = parseInt(p[0], 10);
+    var sufijo = h < 12 ? "a. m." : "p. m.";
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ":" + p[1] + " " + sufijo;
+  }
+  function nombreDia(dia) {
+    return new Date(dia + "T12:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+  }
+  function nombreMes(mes) {
+    return new Date(mes + "-15T12:00:00").toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+  }
+  function crear(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) e.className = clase;
+    if (texto !== undefined) e.textContent = texto;
+    return e;
+  }
+
+  function leerCsv(texto) {
+    var filas = [];
+    texto.split(/\r?\n/).forEach(function (linea, i) {
+      if (i === 0 || !linea.trim()) return;
+      var c = linea.split(";");
+      if (c.length < 2) return;
+      var horaTxt = (c[0].split(" ")[1] || "00:00:00");
+      var hm = horaTxt.split(":");
+      filas.push({
+        hora: hm[0] + ":" + hm[1],
+        minuto: parseInt(hm[0], 10) * 60 + parseInt(hm[1], 10) + (parseInt(hm[2] || "0", 10) / 60),
+        estado: NOMBRES[c[1]] ? c[1] : "error",
+        detalle: c[2] || "",
+        captura: c[4] || ""
+      });
+    });
+    return filas;
+  }
+
+  function traerDia(dia) {
+    return fetch(BASE + "registro-" + dia + ".csv", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (t) { return t ? { dia: dia, filas: leerCsv(t) } : null; });
+  }
+
+  function pintarTabla(contenedor, filas) {
+    var tabla = crear("table");
+    var cab = crear("tr");
+    ["Hora", "Resultado", "Lo que respondió la página"].forEach(function (t) { cab.appendChild(crear("th", "", t)); });
+    tabla.appendChild(cab);
+    filas.forEach(function (f) {
+      var tr = crear("tr");
+      tr.appendChild(crear("td", "", hora12(f.hora)));
+      tr.appendChild(crear("td", f.estado, NOMBRES[f.estado]));
+      var nota = crear("td", "nota", f.detalle);
+      if (f.captura) {
+        nota.appendChild(document.createTextNode(" "));
+        var a = crear("a", "", "Ver captura de pantalla");
+        a.href = BASE + "capturas/" + f.captura;
+        a.target = "_blank";
+        a.rel = "noopener";
+        nota.appendChild(a);
+      }
+      tr.appendChild(nota);
+      tabla.appendChild(tr);
+    });
+    contenedor.appendChild(tabla);
+  }
+
+  function pintarDia(d) {
+    var conCitas = d.filas.filter(function (f) { return f.estado === "hay_citas"; }).length;
+    var fallidas = d.filas.filter(function (f) { return f.estado === "error" || f.estado === "no_reconocido"; }).length;
+
+    var det = crear("details", "dia");
+    var sum = crear("summary");
+    sum.appendChild(crear("span", "fecha", nombreDia(d.dia)));
+
+    var tira = crear("div", "tira");
+    tira.setAttribute("role", "img");
+    tira.setAttribute("aria-label", plural(d.filas.length, "consulta", "consultas") + " durante el día, " + conCitas + " con citas disponibles");
+    d.filas.forEach(function (f) {
+      var marca = crear("i", f.estado);
+      marca.style.left = (f.minuto / 1440 * 100).toFixed(3) + "%";
+      marca.title = hora12(f.hora) + ": " + NOMBRES[f.estado];
+      tira.appendChild(marca);
+    });
+    sum.appendChild(tira);
+
+    var cuenta = crear("span", "cuenta");
+    cuenta.appendChild(document.createTextNode(plural(d.filas.length, "consulta", "consultas") + ", "));
+    if (conCitas) cuenta.appendChild(crear("b", "", conCitas + " con citas"));
+    else cuenta.appendChild(document.createTextNode("ninguna con citas"));
+    if (fallidas) cuenta.appendChild(document.createTextNode(", " + plural(fallidas, "fallida", "fallidas")));
+    var abre = crear("span", "abre", "Ver hora por hora");
+    cuenta.appendChild(abre);
+    sum.appendChild(cuenta);
+    det.appendChild(sum);
+
+    var zona = crear("div", "detalle");
+    det.appendChild(zona);
+    det.addEventListener("toggle", function () {
+      abre.textContent = det.open ? "Ocultar horas" : "Ver hora por hora";
+      if (det.open && !zona.firstChild) pintarTabla(zona, d.filas);
+    });
+    return det;
+  }
+
+  function cargar(mes) {
+    elBalance.textContent = "Leyendo el registro…";
+    elDias.textContent = "";
+    var hoy = hoyColombia();
+    var partes = mes.split("-");
+    var ultimo = new Date(parseInt(partes[0], 10), parseInt(partes[1], 10), 0).getDate();
+    var dias = [];
+    for (var n = 1; n <= ultimo; n++) {
+      var dia = mes + "-" + String(n).padStart(2, "0");
+      if (dia <= hoy) dias.push(dia);
+    }
+
+    Promise.all(dias.map(function (d) { return traerDia(d).catch(function () { return "fallo"; }); }))
+      .then(function (resultados) {
+        if (elMes.value !== mes) return;
+        if (resultados.length && resultados.every(function (r) { return r === "fallo"; })) {
+          elBalance.textContent = "No se pudo leer el registro.";
+          elDias.appendChild(crear("p", "aviso", "Revisa tu conexión a internet y vuelve a cargar la página."));
+          return;
+        }
+        var conDatos = resultados.filter(function (r) { return r && r !== "fallo" && r.filas.length; });
+        conDatos.sort(function (a, b) { return a.dia < b.dia ? 1 : -1; });
+
+        if (!conDatos.length) {
+          elBalance.textContent = "No hay consultas registradas en " + nombreMes(mes) + ".";
+          elDias.appendChild(crear("p", "aviso", mes === hoy.slice(0, 7)
+            ? "El registro empieza a llenarse con la siguiente consulta del bot. Vuelve a cargar la página en unos minutos."
+            : "Elige otro mes en el selector de arriba."));
+          return;
+        }
+
+        var total = 0, citas = 0, fallidas = 0, diasConCitas = 0;
+        conDatos.forEach(function (d) {
+          var c = d.filas.filter(function (f) { return f.estado === "hay_citas"; }).length;
+          total += d.filas.length;
+          citas += c;
+          if (c) diasConCitas++;
+          fallidas += d.filas.filter(function (f) { return f.estado === "error" || f.estado === "no_reconocido"; }).length;
+        });
+
+        elBalance.textContent = "";
+        elBalance.appendChild(document.createTextNode("En " + nombreMes(mes) + " hay "));
+        elBalance.appendChild(crear("strong", "", plural(total, "consulta registrada", "consultas registradas")));
+        elBalance.appendChild(document.createTextNode(" en " + plural(conDatos.length, "día", "días") + ". "));
+        if (citas) {
+          elBalance.appendChild(document.createTextNode("La DIAN ofreció citas en "));
+          elBalance.appendChild(crear("strong", "si", plural(citas, "consulta", "consultas")));
+          elBalance.appendChild(document.createTextNode(diasConCitas > 1 ? ", en " + numero(diasConCitas) + " días distintos." : "."));
+        } else {
+          elBalance.appendChild(crear("strong", "", "En ninguna la DIAN ofreció citas."));
+        }
+        var reciente = conDatos[0];
+        var ultima = reciente.filas[reciente.filas.length - 1];
+        var nota = "Última consulta: " + nombreDia(reciente.dia) + " a las " + hora12(ultima.hora);
+        if (fallidas) nota += " Además, " + plural(fallidas, "consulta no se pudo completar", "consultas no se pudieron completar") + " (página caída o sin respuesta).";
+        elBalance.appendChild(crear("small", "", nota));
+
+        conDatos.forEach(function (d) { elDias.appendChild(pintarDia(d)); });
+      });
+  }
+
+  elPie.appendChild(document.createTextNode("Las horas son de Colombia. Los datos pueden tardar unos minutos en aparecer. Cada consulta queda guardada con fecha y hora en el "));
+  var enlace = crear("a", "", "historial del repositorio");
+  enlace.href = "https://github.com/" + dueno + "/" + repo + "/commits/datos";
+  elPie.appendChild(enlace);
+  elPie.appendChild(document.createTextNode("."));
+
+  document.getElementById("imprimir").addEventListener("click", function () { window.print(); });
+  elMes.max = hoyColombia().slice(0, 7);
+  elMes.value = parametros.get("mes") || hoyColombia().slice(0, 7);
+  elMes.addEventListener("change", function () { if (elMes.value) cargar(elMes.value); });
+  cargar(elMes.value);
+})();
+</script>
+</body>
+</html>
