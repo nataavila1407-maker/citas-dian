@@ -1,0 +1,38 @@
+name: Citas DIAN
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # cada 10 minutos
+  workflow_dispatch:          # permite ejecutarlo a mano (modo prueba)
+
+concurrency:
+  group: citas-dian
+  cancel-in-progress: false
+
+jobs:
+  consultar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar navegador
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: Consultar citas
+        run: node monitor.js
+        env:
+          WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+          WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Guardar capturas
+        if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: capturas
+          path: "*.png"
+          retention-days: 3
+          if-no-files-found: ignore
