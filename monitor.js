@@ -15,7 +15,7 @@ const PASOS = [
 ];
 
 // Texto que muestra la página cuando NO hay citas.
-const SIN_CITAS = "No se encontraron especialidades";
+const SIN_CITAS = "No se encontraron especialidades relacionadas según los filtros seleccionados.";
 // ===========================================================================
 
 async function whatsapp(texto) {
