@@ -180,3 +180,4 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-16 14:47:50;hay_citas;Trámites ofrecidos: Bucaramanga “Solicitud de devolución y/o compensación persona natural”., Cali “Solicitud de devolución y/o compensación persona natural”.;2026-10-16T19:47:50Z;2026-10-16_144750.png
 2026-10-16 14:50:17;hay_citas;Trámites ofrecidos: Bogotá - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural , “Bucaramanga - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural”, “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Hí;2026-10-16T19:50:17Z;2026-10-16_145017.png
 2026-10-16 14:55:49;error;No encontré en pantalla el botón Persona Natural;2026-10-16T19:55:49Z;
+2026-10-16 14:59:30;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-10-16T19:59:30Z;
