@@ -182,3 +182,4 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-16 14:55:49;error;No encontré en pantalla el botón Persona Natural;2026-10-16T19:55:49Z;
 2026-10-16 14:59:30;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-10-16T19:59:30Z;
 2026-10-16 15:03:45;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural”;2026-10-16T20:03:45Z;2026-10-16_150345.png
+2026-10-16 15:08:45;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-16T20:08:45Z;
