@@ -78,13 +78,18 @@ async function avisar(texto) {
       })));
   }
   if (tgToken && tgChat) {
-    resultados.push(await enviarConReintentos("Telegram", () =>
-      fetch("https://api.telegram.org/bot" + tgToken + "/sendMessage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: tgChat, text: texto }),
-        signal: AbortSignal.timeout(15000),
-      })));
+    // Se pueden poner varios números de chat separados por coma.
+    const chats = tgChat.split(/[,;\s]+/).map((c) => c.trim()).filter(Boolean);
+    for (let n = 0; n < chats.length; n++) {
+      const nombre = chats.length > 1 ? "Telegram " + (n + 1) : "Telegram";
+      resultados.push(await enviarConReintentos(nombre, () =>
+        fetch("https://api.telegram.org/bot" + tgToken + "/sendMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chats[n], text: texto }),
+          signal: AbortSignal.timeout(15000),
+        })));
+    }
   }
   if (tel && key) {
     resultados.push(await enviarConReintentos("WhatsApp", () =>
