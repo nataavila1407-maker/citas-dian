@@ -30,44 +30,75 @@ function registrar(estado, detalle, conCaptura) {
   const ahora = new Date();
   const colombia = ahora.toLocaleString("sv-SE", { timeZone: "America/Bogota" });
   const utc = ahora.toISOString().replace(/\.\d+Z$/, "Z");
-  const limpio = String(detalle || "").replace(/[;\r\n"]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+  const limpio = String(detalle || "").replace(/[;\r\n"]+/g, " ").replace(/\s+/g, " ").trim().slice(-400);
   const captura = conCaptura ? colombia.replace(" ", "_").replace(/:/g, "") + ".png" : "";
   fs.writeFileSync("linea.csv", [colombia, estado, limpio, utc, captura].join(";") + "\n");
 }
 
 // Envía el aviso por los canales que estén configurados (WhatsApp y/o ntfy).
+// Envía el aviso por los canales configurados (ntfy, Telegram y/o WhatsApp).
+// Reintenta si el servicio falla y devuelve un resumen para dejarlo en el registro.
+async function enviarConReintentos(nombre, hacer) {
+  const esperas = [0, 5000, 15000, 30000];
+  let ultimo = "";
+  for (let i = 0; i < esperas.length; i++) {
+    if (esperas[i]) await new Promise((r) => setTimeout(r, esperas[i]));
+    try {
+      const r = await hacer();
+      ultimo = String(r.status);
+      if (r.ok) {
+        anotar(nombre + " enviado (respuesta " + r.status + ", intento " + (i + 1) + ").");
+        return nombre + " ok";
+      }
+      const cuerpo = (await r.text().catch(() => "")).slice(0, 200);
+      anotar(nombre + " rechazado (respuesta " + r.status + "): " + cuerpo);
+    } catch (e) {
+      ultimo = e.message;
+      anotar(nombre + " falló: " + e.message);
+    }
+  }
+  return nombre + " FALLÓ (" + ultimo + ")";
+}
+
 async function avisar(texto) {
+  const resultados = [];
   const tel = process.env.WHATSAPP_PHONE;
   const key = process.env.WHATSAPP_APIKEY;
   const tema = process.env.NTFY_TOPIC;
-  if (!(tel && key) && !tema) {
-    anotar("No hay ningún canal de aviso configurado todavía; no se envió el mensaje.");
-    return;
+  const fichaNtfy = process.env.NTFY_TOKEN;
+  const tgToken = process.env.TELEGRAM_TOKEN;
+  const tgChat = process.env.TELEGRAM_CHAT_ID;
+
+  if (tema) {
+    const cabeceras = { Title: "Citas DIAN", Priority: "urgent", Tags: "rotating_light", Click: URL };
+    if (fichaNtfy) cabeceras.Authorization = "Bearer " + fichaNtfy;
+    resultados.push(await enviarConReintentos("ntfy", () =>
+      fetch("https://ntfy.sh/" + encodeURIComponent(tema), {
+        method: "POST", body: texto, headers: cabeceras, signal: AbortSignal.timeout(15000),
+      })));
+  }
+  if (tgToken && tgChat) {
+    resultados.push(await enviarConReintentos("Telegram", () =>
+      fetch("https://api.telegram.org/bot" + tgToken + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: tgChat, text: texto }),
+        signal: AbortSignal.timeout(15000),
+      })));
   }
   if (tel && key) {
-    const url =
-      "https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(tel) +
-      "&text=" + encodeURIComponent(texto) +
-      "&apikey=" + encodeURIComponent(key);
-    try {
-      const r = await fetch(url);
-      anotar("WhatsApp enviado. Respuesta del servicio: " + r.status);
-    } catch (e) {
-      anotar("No se pudo enviar el WhatsApp: " + e.message);
-    }
+    resultados.push(await enviarConReintentos("WhatsApp", () =>
+      fetch(
+        "https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(tel) +
+        "&text=" + encodeURIComponent(texto) + "&apikey=" + encodeURIComponent(key),
+        { signal: AbortSignal.timeout(20000) }
+      )));
   }
-  if (tema) {
-    try {
-      const r = await fetch("https://ntfy.sh/" + encodeURIComponent(tema), {
-        method: "POST",
-        body: texto,
-        headers: { Title: "Citas DIAN", Priority: "urgent", Tags: "rotating_light", Click: URL },
-      });
-      anotar("Notificación ntfy enviada. Respuesta del servicio: " + r.status);
-    } catch (e) {
-      anotar("No se pudo enviar la notificación ntfy: " + e.message);
-    }
+  if (!resultados.length) {
+    anotar("No hay ningún canal de aviso configurado; no se envió el mensaje.");
+    return "sin canal de aviso";
   }
+  return resultados.join(", ");
 }
 
 // Se ejecuta dentro de la página: busca el botón visible cuyo texto coincide,
@@ -245,11 +276,11 @@ async function guardarDiagnostico(page, motivo) {
       if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas.");
     } else if (resultado.listaVisible) {
       const tramites = resultado.opciones.slice(0, 4).join(", ");
-      registrar("hay_citas", tramites ? "Trámites ofrecidos: " + tramites : "Apareció la lista de trámites", true);
-      await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + (tramites ? " Trámites: " + tramites + "." : "") + " Entra ya: " + URL);
+      const aviso = await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + (tramites ? " Trámites: " + tramites + "." : "") + " Entra ya: " + URL);
+      registrar("hay_citas", (tramites ? "Trámites ofrecidos: " + tramites : "Apareció la lista de trámites") + " | Aviso: " + aviso, true);
     } else {
-      registrar("no_reconocido", "No salió el mensaje de sin citas ni la lista de trámites", true);
-      await avisar("DIAN: no salió el mensaje de sin citas. Revisa por si hay disponibilidad: " + URL);
+      const aviso = await avisar("DIAN: no salió el mensaje de sin citas. Revisa por si hay disponibilidad: " + URL);
+      registrar("no_reconocido", "No salió el mensaje de sin citas ni la lista de trámites | Aviso: " + aviso, true);
     }
     if (manual) await guardarDiagnostico(page, "Prueba manual terminada");
   } catch (e) {
