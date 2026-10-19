@@ -35,6 +35,9 @@ jobs:
           WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
           WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' && inputs.prueba }}
           GH_TOKEN: ${{ github.token }}
           CADA_SEG: "300"      # cada cuánto consulta (300 segundos = 5 minutos)
