@@ -40,7 +40,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           MANUAL: ${{ github.event_name == 'workflow_dispatch' && inputs.prueba }}
           GH_TOKEN: ${{ github.token }}
-          CADA_SEG: "300"      # cada cuánto consulta (300 segundos = 5 minutos)
+          CADA_SEG: "60"      # cada cuánto consulta (300 segundos = 5 minutos)
           TURNO_SEG: "18000"   # cuánto dura cada turno (18000 segundos = 5 horas)
         run: |
           REMOTO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
