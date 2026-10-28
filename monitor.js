@@ -18,8 +18,10 @@ const PASOS = [
 // Texto que muestra la página cuando NO hay citas.
 const SIN_CITAS = "No se encontraron especialidades";
 
-// Ciudades que sí sirven: solo se avisa si aparece alguna de estas (separadas por coma).
-const CIUDADES = (process.env.CIUDADES || "Bogotá").split(",").map((c) => c.trim()).filter(Boolean);
+// Ciudades que sí sirven, separadas por coma. "todas" = avisa de cualquier ciudad.
+const CIUDADES = (process.env.CIUDADES || "todas").split(",").map((c) => c.trim()).filter(Boolean);
+const TODAS = CIUDADES.length === 0 || CIUDADES.some((c) => c.toLowerCase() === "todas");
+const DONDE = TODAS ? "cualquier ciudad" : CIUDADES.join(", ");
 
 // Cada cuántos segundos se consulta, y cuánto dura cada tanda antes de guardar el registro.
 const INTERVALO_SEG = Number(process.env.INTERVALO_SEG || 15);
@@ -51,6 +53,7 @@ function leerEstado() {
 }
 function guardarEstado(e) { fs.writeFileSync("estado.json", JSON.stringify(e)); }
 function sirve(opcion) {
+  if (TODAS) return true;
   const n = (x) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   return CIUDADES.some((c) => n(opcion).includes(n(c)));
 }
@@ -288,15 +291,15 @@ async function consultar(page, manual, vuelta) {
     estado.avisadas = [];
     guardarEstado(estado);
     if (minutoSinRegistro || manual) registrar("sin_citas", resultado.mensaje, false);
-    if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas en " + CIUDADES.join(", ") + ".");
+    if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas en " + DONDE + ".");
   } else if (resultado.listaVisible) {
     const todas = resultado.opciones;
     const utiles = todas.filter(sirve);
     const nuevas = utiles.filter((o) => !estado.avisadas.includes(o));
-    let aviso = "sin aviso (no es de " + CIUDADES.join(", ") + ")";
+    let aviso = "sin aviso (no es de " + DONDE + ")";
     let conCaptura = false;
     if (nuevas.length) {
-      aviso = await avisar("🚨 DIAN: HAY CITAS EN " + CIUDADES.join(", ").toUpperCase() + " — " + nuevas.join(" / ") + ". Entra YA: " + URL);
+      aviso = await avisar("🚨 DIAN: HAY CITAS — " + nuevas.join(" / ") + ". Entra YA: " + URL);
       conCaptura = true;
     } else if (utiles.length) {
       aviso = "ya avisado";
