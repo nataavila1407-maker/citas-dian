@@ -703,3 +703,4 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-28 11:57:36;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-10-28T16:57:36Z;
 2026-10-28 11:58:48;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-28T16:58:48Z;
 2026-10-28 11:59:45;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-28T16:59:45Z;
+2026-10-28 12:00:45;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-28T17:00:45Z;
