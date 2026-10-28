@@ -17,6 +17,13 @@ const PASOS = [
 
 // Texto que muestra la página cuando NO hay citas.
 const SIN_CITAS = "No se encontraron especialidades";
+
+// Ciudades que sí sirven: solo se avisa si aparece alguna de estas (separadas por coma).
+const CIUDADES = (process.env.CIUDADES || "Bogotá").split(",").map((c) => c.trim()).filter(Boolean);
+
+// Cada cuántos segundos se consulta, y cuánto dura cada tanda antes de guardar el registro.
+const INTERVALO_SEG = Number(process.env.INTERVALO_SEG || 15);
+const TANDA_SEG = Number(process.env.TANDA_SEG || 60);
 // ===========================================================================
 
 const registro = [];
@@ -27,12 +34,25 @@ function anotar(mensaje) {
 
 // Deja anotado el resultado de esta consulta para el registro histórico.
 function registrar(estado, detalle, conCaptura) {
+  ultimoRegistro = Date.now();
   const ahora = new Date();
   const colombia = ahora.toLocaleString("sv-SE", { timeZone: "America/Bogota" });
   const utc = ahora.toISOString().replace(/\.\d+Z$/, "Z");
   const limpio = String(detalle || "").replace(/[;\r\n"]+/g, " ").replace(/\s+/g, " ").trim().slice(-400);
   const captura = conCaptura ? colombia.replace(" ", "_").replace(/:/g, "") + ".png" : "";
-  fs.writeFileSync("linea.csv", [colombia, estado, limpio, utc, captura].join(";") + "\n");
+  fs.appendFileSync("linea.csv", [colombia, estado, limpio, utc, captura].join(";") + "\n");
+  return captura;
+}
+let ultimoRegistro = 0;
+
+// Recuerda entre tandas si ya se avisó (para no repetir el aviso cada 15 segundos).
+function leerEstado() {
+  try { return JSON.parse(fs.readFileSync("estado.json", "utf8")); } catch (e) { return { avisadas: [] }; }
+}
+function guardarEstado(e) { fs.writeFileSync("estado.json", JSON.stringify(e)); }
+function sirve(opcion) {
+  const n = (x) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return CIUDADES.some((c) => n(opcion).includes(n(c)));
 }
 
 // Envía el aviso por los canales que estén configurados (WhatsApp y/o ntfy).
@@ -153,7 +173,7 @@ async function clicEnTexto(page, texto) {
         return;
       }
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(200);
   }
   throw new Error('No encontré en pantalla el botón "' + texto + '"');
 }
@@ -239,6 +259,60 @@ async function guardarDiagnostico(page, motivo) {
   fs.writeFileSync("diagnostico.txt", lineas.join("\n"));
 }
 
+// Una consulta: entra a la página, sigue los pasos y mira el resultado.
+async function consultar(page, manual, vuelta) {
+  await page.goto(URL, { waitUntil: "domcontentloaded", timeout: 60000 });
+  if (manual) await page.screenshot({ path: "paso-0-inicio.png", fullPage: true });
+  for (let i = 0; i < PASOS.length; i++) {
+    await clicEnTexto(page, PASOS[i]);
+    if (manual) {
+      await page.waitForTimeout(1500);
+      await page.screenshot({ path: "paso-" + (i + 1) + ".png", fullPage: true });
+    }
+  }
+
+  // Espera a que la página responda: mensaje de sin citas o lista de trámites.
+  let resultado = { mensaje: "", listaVisible: false, opciones: [] };
+  const limite = Date.now() + 25000;
+  while (Date.now() < limite) {
+    resultado = await page.evaluate(leerResultado, SIN_CITAS);
+    if (resultado.mensaje || resultado.listaVisible) break;
+    await page.waitForTimeout(200);
+  }
+  anotar("Consulta " + (vuelta + 1) + ": " + JSON.stringify(resultado));
+
+  const estado = leerEstado();
+  const minutoSinRegistro = Date.now() - ultimoRegistro > 55000;
+
+  if (resultado.mensaje) {
+    estado.avisadas = [];
+    guardarEstado(estado);
+    if (minutoSinRegistro || manual) registrar("sin_citas", resultado.mensaje, false);
+    if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas en " + CIUDADES.join(", ") + ".");
+  } else if (resultado.listaVisible) {
+    const todas = resultado.opciones;
+    const utiles = todas.filter(sirve);
+    const nuevas = utiles.filter((o) => !estado.avisadas.includes(o));
+    let aviso = "sin aviso (no es de " + CIUDADES.join(", ") + ")";
+    let conCaptura = false;
+    if (nuevas.length) {
+      aviso = await avisar("🚨 DIAN: HAY CITAS EN " + CIUDADES.join(", ").toUpperCase() + " — " + nuevas.join(" / ") + ". Entra YA: " + URL);
+      conCaptura = true;
+    } else if (utiles.length) {
+      aviso = "ya avisado";
+    }
+    estado.avisadas = utiles;
+    guardarEstado(estado);
+    if (utiles.length || minutoSinRegistro) {
+      const captura = registrar("hay_citas", "Trámites ofrecidos: " + todas.join(", ") + " | Aviso: " + aviso, conCaptura);
+      if (captura) await page.screenshot({ path: "capturas_tanda/" + captura, fullPage: true }).catch(() => {});
+    }
+  } else if (minutoSinRegistro || manual) {
+    const captura = registrar("no_reconocido", "No salió el mensaje de sin citas ni la lista de trámites", true);
+    await page.screenshot({ path: "capturas_tanda/" + captura, fullPage: true }).catch(() => {});
+  }
+}
+
 (async () => {
   const manual = process.env.MANUAL === "true";
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
@@ -248,49 +322,34 @@ async function guardarDiagnostico(page, motivo) {
     viewport: { width: 1366, height: 900 },
   });
   const page = await context.newPage();
+  fs.mkdirSync("capturas_tanda", { recursive: true });
   let codigo = 0;
 
   try {
-    await page.goto(URL, { waitUntil: "domcontentloaded", timeout: 60000 });
-    await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
-    await page.waitForTimeout(2000);
-    await page.screenshot({ path: "paso-0-inicio.png", fullPage: true });
-
-    for (let i = 0; i < PASOS.length; i++) {
-      await clicEnTexto(page, PASOS[i]);
-      await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
-      await page.waitForTimeout(2000);
-      await page.screenshot({ path: "paso-" + (i + 1) + ".png", fullPage: true });
-      anotar("Paso " + (i + 1) + " listo: " + PASOS[i]);
-    }
-
-    // Espera a que la página responda: mensaje de sin citas o lista de trámites.
-    let resultado = { mensaje: "", listaVisible: false, opciones: [] };
-    const limite = Date.now() + 25000;
-    while (Date.now() < limite) {
-      resultado = await page.evaluate(leerResultado, SIN_CITAS);
-      if (resultado.mensaje || resultado.listaVisible) break;
-      await page.waitForTimeout(500);
-    }
-    await page.screenshot({ path: "resultado.png", fullPage: true });
-    anotar("Resultado: " + JSON.stringify(resultado));
-
-    if (resultado.mensaje) {
-      anotar("Sin citas por ahora.");
-      registrar("sin_citas", resultado.mensaje, false);
-      if (manual) await avisar("Prueba del bot DIAN: funciona. Por ahora NO hay citas.");
-    } else if (resultado.listaVisible) {
-      const tramites = resultado.opciones.slice(0, 4).join(", ");
-      const aviso = await avisar("DIAN: HAY CITAS (Videoatención - Devoluciones)." + (tramites ? " Trámites: " + tramites + "." : "") + " Entra ya: " + URL);
-      registrar("hay_citas", (tramites ? "Trámites ofrecidos: " + tramites : "Apareció la lista de trámites") + " | Aviso: " + aviso, true);
-    } else {
-      const aviso = await avisar("DIAN: no salió el mensaje de sin citas. Revisa por si hay disponibilidad: " + URL);
-      registrar("no_reconocido", "No salió el mensaje de sin citas ni la lista de trámites | Aviso: " + aviso, true);
+    const fin = Date.now() + TANDA_SEG * 1000;
+    let vuelta = 0;
+    let fallas = 0;
+    while (true) {
+      const inicioVuelta = Date.now();
+      try {
+        await consultar(page, manual, vuelta++);
+      } catch (e) {
+        // Si una consulta falla, se anota y se sigue con la próxima (no se cae la tanda).
+        fallas++;
+        anotar("Error: " + e.message);
+        if (manual || Date.now() - ultimoRegistro > 55000) registrar("error", e.message, false);
+        if (manual) throw e;
+        if (fallas >= 3) throw e;
+      }
+      if (manual) break;
+      const siguiente = inicioVuelta + INTERVALO_SEG * 1000;
+      if (siguiente >= fin) break;
+      if (siguiente > Date.now()) await page.waitForTimeout(siguiente - Date.now());
     }
     if (manual) await guardarDiagnostico(page, "Prueba manual terminada");
   } catch (e) {
     anotar("Error: " + e.message);
-    registrar("error", e.message, false);
+    if (manual) registrar("error", e.message, false);
     await page.screenshot({ path: "error.png", fullPage: true }).catch(() => {});
     await guardarDiagnostico(page, e.message).catch(() => {});
     if (manual) await avisar("Prueba del bot DIAN: falló. " + e.message);
