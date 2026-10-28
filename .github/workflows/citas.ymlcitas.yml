@@ -43,7 +43,7 @@ jobs:
           CADA_SEG: "60"      # cada cuánto se guarda el registro (una tanda de consultas por minuto)
           INTERVALO_SEG: "15" # cada cuánto se consulta la página dentro de la tanda
           TANDA_SEG: "60"     # cuánto dura cada tanda de consultas
-          CIUDADES: "Bogotá"  # solo avisa si aparece esta ciudad (varias: "Bogotá,Medellín")
+          CIUDADES: "todas"   # avisa de todas las ciudades (o solo algunas: "Bogotá,Medellín")
           TURNO_SEG: "18000"   # cuánto dura cada turno (18000 segundos = 5 horas)
         run: |
           REMOTO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
