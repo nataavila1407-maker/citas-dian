@@ -691,3 +691,4 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-29 10:44:55;error;page.waitForTimeout: Target page, context or browser has been closed;2026-10-29T15:44:55Z;
 2026-10-29 10:46:37;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ya avisado;2026-10-29T15:46:37Z;
 2026-10-29 10:47:58;error;page.waitForTimeout: Target page, context or browser has been closed;2026-10-29T15:47:58Z;
+2026-10-29 10:50:40;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-29T15:50:40Z;
