@@ -583,3 +583,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-30 09:35:02;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-10-30T14:35:02Z;
 2026-10-30 09:35:48;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural . | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-10-30T14:35:48Z;2026-10-30_093548.png
 2026-10-30 09:36:49;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural ., Bucaramanga “Solicitud de devolución y/o compensación persona natural”., Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-10-30T14:36:49Z;2026-10-30_093649.png
+2026-10-30 09:38:29;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural ., Bucaramanga “Solicitud de devolución y/o compensación persona natural”., Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ya avisado;2026-10-30T14:38:29Z;
+2026-10-30 09:39:52;error;page.waitForTimeout: Target page, context or browser has been closed;2026-10-30T14:39:52Z;
