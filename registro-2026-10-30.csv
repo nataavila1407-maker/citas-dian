@@ -587,3 +587,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-10-30 09:39:52;error;page.waitForTimeout: Target page, context or browser has been closed;2026-10-30T14:39:52Z;
 2026-10-30 09:41:25;error;No encontré en pantalla el botón Persona Natural;2026-10-30T14:41:25Z;
 2026-10-30 09:42:26;error;No encontré en pantalla el botón Agendar cita;2026-10-30T14:42:26Z;
+2026-10-30 09:43:30;error;No encontré en pantalla el botón Agendar cita;2026-10-30T14:43:30Z;
+2026-10-30 09:44:32;error;No encontré en pantalla el botón Agendar cita;2026-10-30T14:44:32Z;
