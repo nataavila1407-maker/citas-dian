@@ -929,3 +929,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-05 14:21:09;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural . | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-11-05T19:21:09Z;2026-11-05_142109.png
 2026-11-05 14:21:24;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-05T19:21:24Z;
 2026-11-05 14:22:24;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-05T19:22:24Z;
+2026-11-05 14:23:24;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-05T19:23:24Z;
+2026-11-05 14:24:50;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-05T19:24:50Z;
