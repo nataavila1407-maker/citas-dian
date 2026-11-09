@@ -711,3 +711,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-09 10:49:21;error;No encontré en pantalla el botón Agendar cita;2026-11-09T15:49:21Z;
 2026-11-09 10:51:29;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-09T15:51:29Z;
 2026-11-09 10:53:47;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-09T15:53:47Z;
+2026-11-09 10:56:00;error;No encontré en pantalla el botón Persona Natural;2026-11-09T15:56:00Z;
+2026-11-09 10:57:34;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-09T15:57:34Z;
