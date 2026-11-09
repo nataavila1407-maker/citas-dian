@@ -706,3 +706,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-09 10:42:21;error;elementHandle.click: Target page, context or browser has been closed Call log: - attempting click action - waiting for element to be visible, enabled and stable - element is visible, enabled and stable - scrolling into view if needed - done scrolling;2026-11-09T15:42:21Z;
 2026-11-09 10:43:42;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-09T15:43:42Z;
 2026-11-09 10:45:24;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-09T15:45:24Z;
+2026-11-09 10:47:22;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-09T15:47:22Z;
+2026-11-09 10:48:26;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-09T15:48:26Z;
