@@ -977,3 +977,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-09 15:24:24;error;No encontré en pantalla el botón Agendar cita;2026-11-09T20:24:24Z;
 2026-11-09 15:25:34;error;No encontré en pantalla el botón Agendar cita;2026-11-09T20:25:34Z;
 2026-11-09 15:26:34;error;No encontré en pantalla el botón Agendar cita;2026-11-09T20:26:34Z;
+2026-11-09 15:27:44;error;No encontré en pantalla el botón Agendar cita;2026-11-09T20:27:44Z;
+2026-11-09 15:29:38;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-09T20:29:38Z;
