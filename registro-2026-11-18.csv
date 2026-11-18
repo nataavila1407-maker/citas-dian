@@ -669,3 +669,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-18 10:29:53;hay_citas;Trámites ofrecidos: Manizales - Solicitud de devolución y/o compensación vehículos eléctricos o híbridos , “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ya avisado;2026-11-18T15:29:53Z;
 2026-11-18 10:31:07;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-18T15:31:07Z;
 2026-11-18 10:33:36;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ya avisado;2026-11-18T15:33:36Z;
+2026-11-18 10:35:31;error;No encontré en pantalla el botón Persona Natural;2026-11-18T15:35:31Z;
+2026-11-18 10:36:33;error;No encontré en pantalla el botón Agendar cita;2026-11-18T15:36:33Z;
