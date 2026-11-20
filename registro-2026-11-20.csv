@@ -647,3 +647,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-20 11:02:45;error;No encontré en pantalla el botón Agendar cita;2026-11-20T16:02:45Z;
 2026-11-20 11:03:04;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural ., Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-11-20T16:03:04Z;2026-11-20_110304.png
 2026-11-20 11:03:21;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural ., Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ya avisado;2026-11-20T16:03:21Z;
+2026-11-20 11:03:34;hay_citas;Trámites ofrecidos: Bogotá Solicitud de devolución y/o compensación persona natural ., Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ya avisado;2026-11-20T16:03:34Z;
+2026-11-20 11:04:30;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-20T16:04:30Z;
