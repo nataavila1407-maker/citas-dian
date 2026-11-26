@@ -602,3 +602,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 10:52:28;error;No encontré en pantalla el botón Agendar cita;2026-11-26T15:52:28Z;
 2026-11-26 10:53:31;error;No encontré en pantalla el botón Agendar cita;2026-11-26T15:53:31Z;
 2026-11-26 10:55:10;error;No encontré en pantalla el botón Persona Natural;2026-11-26T15:55:10Z;
+2026-11-26 10:56:40;error;No encontré en pantalla el botón Persona Natural;2026-11-26T15:56:40Z;
+2026-11-26 10:58:13;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T15:58:13Z;
