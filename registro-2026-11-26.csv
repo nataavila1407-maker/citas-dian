@@ -586,3 +586,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 10:29:49;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T15:29:49Z;
 2026-11-26 10:32:06;hay_citas;Trámites ofrecidos: Manizales - Solicitud de devolución y/o compensación vehículos eléctricos o híbridos , “Bucaramanga - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural”, “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-11-26T15:32:06Z;2026-11-26_103206.png
 2026-11-26 10:35:36;no_reconocido;No salió el mensaje de sin citas ni la lista de trámites;2026-11-26T15:35:36Z;2026-11-26_103536.png
+2026-11-26 10:36:53;error;No encontré en pantalla el botón Agendar cita;2026-11-26T15:36:53Z;
+2026-11-26 10:38:24;error;No encontré en pantalla el botón Persona Natural;2026-11-26T15:38:24Z;
