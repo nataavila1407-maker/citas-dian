@@ -632,3 +632,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 11:28:58;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T16:28:58Z;
 2026-11-26 11:30:29;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T16:30:29Z;
 2026-11-26 11:31:45;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T16:31:45Z;
+2026-11-26 11:33:37;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T16:33:37Z;
+2026-11-26 11:34:49;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T16:34:49Z;
