@@ -921,3 +921,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 17:57:53;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T22:57:53Z;
 2026-11-26 17:58:50;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T22:58:50Z;
 2026-11-26 18:00:02;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T23:00:02Z;
+2026-11-26 18:00:14;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T23:00:14Z;
+2026-11-26 18:01:45;error;No encontré en pantalla el botón Agendar cita;2026-11-26T23:01:45Z;
