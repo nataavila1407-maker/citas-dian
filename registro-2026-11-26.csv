@@ -493,3 +493,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 08:23:20;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural”, Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ya avisado;2026-11-26T13:23:20Z;
 2026-11-26 08:24:57;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural”, Cali “Solicitud de devolución y/o compensación persona natural”. | Aviso: ya avisado;2026-11-26T13:24:57Z;
 2026-11-26 08:26:23;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T13:26:23Z;
+2026-11-26 08:28:16;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-26T13:28:16Z;
+2026-11-26 08:29:26;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-26T13:29:26Z;
