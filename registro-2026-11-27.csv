@@ -673,3 +673,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-27 12:35:53;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T17:35:53Z;
 2026-11-27 12:38:59;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T17:38:59Z;
 2026-11-27 12:41:45;error;No encontré en pantalla el botón Videoatención;2026-11-27T17:41:45Z;
+2026-11-27 12:44:41;error;No encontré en pantalla el botón Videoatención;2026-11-27T17:44:41Z;
+2026-11-27 12:45:42;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-27T17:45:42Z;
