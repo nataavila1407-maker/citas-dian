@@ -724,3 +724,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-27 13:48:58;error;No encontré en pantalla el botón Agendar cita;2026-11-27T18:48:58Z;
 2026-11-27 13:50:02;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T18:50:02Z;
 2026-11-27 13:51:11;error;No encontré en pantalla el botón Agendar cita;2026-11-27T18:51:11Z;
+2026-11-27 13:52:15;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T18:52:15Z;
+2026-11-27 13:53:29;error;No encontré en pantalla el botón Agendar cita;2026-11-27T18:53:29Z;
