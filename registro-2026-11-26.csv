@@ -1042,3 +1042,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-26 19:48:07;error;No encontré en pantalla el botón Agendar cita;2026-11-27T00:48:07Z;
 2026-11-26 19:48:52;error;No encontré en pantalla el botón Agendar cita;2026-11-27T00:48:52Z;
 2026-11-26 19:49:46;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T00:49:46Z;
+2026-11-26 19:50:58;error;action - waiting 100ms 28 × waiting for element to be visible, enabled and stable - element is visible, enabled and stable - scrolling into view if needed - done scrolling - <body>…</body> intercepts pointer events - retrying click action - waiting 500ms - waiting for element to be visible, enabled and stable - element is visible, enabled and stable - scrolling into view if needed - done scrolling;2026-11-27T00:50:58Z;
+2026-11-26 19:51:55;error;No encontré en pantalla el botón Agendar cita;2026-11-27T00:51:55Z;
