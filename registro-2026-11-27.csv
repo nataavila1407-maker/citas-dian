@@ -637,3 +637,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-27 11:39:11;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T16:39:11Z;
 2026-11-27 11:40:14;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T16:40:14Z;
 2026-11-27 11:41:14;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T16:41:14Z;
+2026-11-27 11:42:18;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T16:42:18Z;
+2026-11-27 11:43:18;error;page.goto: Timeout 60000ms exceeded. Call log: - navigating to https://agendamiento.dian.gov.co/ , waiting until domcontentloaded;2026-11-27T16:43:18Z;
