@@ -716,3 +716,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-27 13:37:48;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T18:37:48Z;
 2026-11-27 13:38:51;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-27T18:38:51Z;
 2026-11-27 13:41:30;hay_citas;Trámites ofrecidos: Bogotá - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural , Manizales - Solicitud de devolución y/o compensación vehículos eléctricos o híbridos , “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-11-27T18:41:30Z;2026-11-27_134130.png
+2026-11-27 13:43:04;error;No encontré en pantalla el botón Agendar cita;2026-11-27T18:43:04Z;
+2026-11-27 13:44:12;error;No encontré en pantalla el botón Agendar cita;2026-11-27T18:44:12Z;
