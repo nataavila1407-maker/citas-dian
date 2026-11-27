@@ -458,3 +458,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-27 07:55:13;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T12:55:13Z;
 2026-11-27 07:58:00;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-27T12:58:00Z;
 2026-11-27 07:59:07;error;page.waitForTimeout: Target page, context or browser has been closed;2026-11-27T12:59:07Z;
+2026-11-27 08:00:07;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ntfy ok, Telegram 1 ok, Telegram 2 ok;2026-11-27T13:00:07Z;2026-11-27_080007.png
+2026-11-27 08:00:11;hay_citas;Trámites ofrecidos: “Cali - Solicitud de devolución y/o compensación Vehículos eléctricos o Híbridos persona natural” | Aviso: ya avisado;2026-11-27T13:00:11Z;
