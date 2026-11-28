@@ -326,3 +326,5 @@ fecha_hora_colombia;estado;detalle;fecha_utc;captura
 2026-11-28 05:11:17;error;No encontré en pantalla el botón Agendar cita;2026-11-28T10:11:17Z;
 2026-11-28 05:12:01;error;No encontré en pantalla el botón Agendar cita;2026-11-28T10:12:01Z;
 2026-11-28 05:12:56;error;No encontré en pantalla el botón Agendar cita;2026-11-28T10:12:56Z;
+2026-11-28 05:13:02;sin_citas;No se encontraron especialidades relacionadas según los filtros seleccionados.;2026-11-28T10:13:02Z;
+2026-11-28 05:14:24;error;No encontré en pantalla el botón Agendar cita;2026-11-28T10:14:24Z;
